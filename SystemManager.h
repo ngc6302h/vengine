@@ -28,10 +28,10 @@ namespace vengine
     {
         void on_update() override
         {
-            __builtin_printf("Simulation %lu\n", m_counter);
+            __builtin_printf("Simulation %lu\n", m_counter++);
         }
 
-        u64 m_counter;
+        u64 m_counter {0};
     };
 
     struct SystemList
@@ -84,6 +84,17 @@ namespace vengine
 
     class SystemManager
     {
+        friend void main_loop(Context&);
+        
+        void run()
+        {
+            auto* node = m_first;
+            while (node != nullptr)
+            {
+                node->system->on_update();
+                node = node->next;
+            }
+        }
     public:
         SystemManager() = delete;
         SystemManager& operator=(SystemManager&&) = delete;

@@ -20,6 +20,7 @@
 #include "../Tasks.h"
 #include "../SystemManager.h"
 #include "../Context.h"
+#include "../GameLoop.h"
 
 struct Position
 {
@@ -115,5 +116,7 @@ int main()
     ctx.entity_manager().destroy(id4);
     ctx.entity_manager().destroy(id3);
     ctx.entity_manager().destroy(id2);
+    
+    vengine::main_loop(ctx);
     return 0;
 }
