@@ -70,8 +70,8 @@ namespace vengine
 
             Vector<Tuple<Type const*, u8*>> new_data;
             for (auto& component_type : archetype->component_types())
-                new_data.template construct(component_type, archetype->get_component_data(entity, component_type));
-            new_data.template construct(type_of<TComponent>(), (u8*)&data);
+                new_data.append(make_tuple(component_type, archetype->get_component_data(entity, component_type)));
+            new_data.append(make_tuple(type_of<TComponent>(), (u8*)&data));
 
             auto new_entity_id = new_archetype->template create(new_data);
 
