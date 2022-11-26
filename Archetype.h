@@ -23,6 +23,9 @@
 #include "Entity.h"
 #include "ChunkedBuffer.h"
 #include "Badges.h"
+#include "Types.h"
+#include <Tree.h>
+#include <Array.h>
 
 namespace vengine
 {
@@ -113,28 +116,18 @@ namespace vengine
         ArchetypeManager& operator=(ArchetypeManager const&) = delete;
 
         explicit ArchetypeManager(Context& context, detail::ContextBadge) :
-            m_context(context), m_archetypes(), m_archetype_map(16, 64) {};
+                m_context(context), m_archetypes(), m_archetypes_by_components(), m_archetypes_by_id(16, 64) {};
 
-        Archetype* get_or_create_archetype(Vector<Type const*> const& component_types)
+        Archetype* get_or_create_archetype(ComponentList const& component_types)
         {
-            for (auto& archetype : m_archetypes)
-            {
-                bool found = true;
-                for (auto type : component_types)
-                {
-                    if (!archetype->has_type(type))
-                    {
-                        found = false;
-                        break;
-                    }
-                }
-                if (found)
-                    return archetype;
-            }
+            auto maybe_archetypes = m_archetypes_by_components.get(component_types);
+            if (maybe_archetypes.has_value())
+                return maybe_archetypes.value();
 
-            auto new_archetype = new Archetype(component_types);
+            auto new_archetype = create<Archetype>(component_types).release_nonnull().release();
             m_archetypes.append(new_archetype);
-            m_archetype_map.insert(new_archetype->id(), new_archetype);
+            m_archetypes_by_id.insert(new_archetype->id(), new_archetype);
+            m_archetypes_by_components.insert(component_types, new_archetype);
             return new_archetype;
         }
 
@@ -145,15 +138,25 @@ namespace vengine
 
         Archetype* get_archetype_by_id(u32 id)
         {
-            auto archetype = m_archetype_map.get(id);
+            auto archetype = m_archetypes_by_id.get(id);
             ENSURE(archetype.has_value());
             return archetype.value();
+        }
+        
+        void print_archetype_hierarchy()
+        {
+            m_archetypes_by_components.debug_print([](auto& p) {
+                for (auto& ptr : p)
+                    __builtin_printf("%s,", ptr->name().data());
+                },
+                                                   [](auto& opt) { __builtin_printf("%p", opt.value_or(nullptr)); });
         }
 
     private:
         Context& m_context;
         Vector<Archetype*> m_archetypes;
-        Hashmap<u32, Archetype*> m_archetype_map;
+        RadixTree<ComponentList::const_iterator, Archetype*> m_archetypes_by_components;
+        Hashmap<u32, Archetype*> m_archetypes_by_id;
     };
 
 }
