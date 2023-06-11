@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2022 iori (shortanemoia@protonmail.com)
+    Copyright (C) 2022-2023 iori (shortanemoia@protonmail.com)
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as
     published by the Free Software Foundation, either version 3 of the
@@ -14,8 +14,32 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "library.h"
+#pragma once
 
-void hello()
+#include "Window.h"
+#include "Input.h"
+#include <SmartPtr.h>
+
+namespace vengine
 {
+    struct SubsystemData
+    {
+        OwnPtr<Window> window_subsystem;
+        OwnPtr<Input> input_subsystem;
+    };
+    
+    class SubsystemCreationError
+    {
+    public:
+    
+        SubsystemCreationError(String&& message) : m_message(std::move(message))
+        {}
+        
+        String const& message()  const
+        {
+            return m_message;
+        }
+    private:
+        String m_message;
+    };
 }

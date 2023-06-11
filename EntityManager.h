@@ -69,7 +69,7 @@ namespace vengine
             auto* new_archetype = m_context.archetype_manager().get_or_create_archetype(new_component_list);
 
             Vector<Tuple<Type const*, u8*>> new_data;
-            for (auto& component_type : archetype->component_types())
+            for (auto const& component_type : archetype->component_types())
                 new_data.append(make_tuple(component_type, archetype->get_component_data(entity, component_type)));
             new_data.append(make_tuple(type_of<TComponent>(), (u8*)&data));
 

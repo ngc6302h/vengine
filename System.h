@@ -26,15 +26,39 @@ namespace vengine
         friend class SystemManager;
 
     public:
+        System(String name, Context& context) : m_name(std::move(name)), m_context(context)
+        {}
+    
         virtual ~System() = default;
 
+        String& name()
+        {
+            return m_name;
+        }
+    
+        String const& name() const
+        {
+            return m_name;
+        }
+    
+        Context& context()
+        {
+            return m_context;
+        }
+    
+        Context const& context() const
+        {
+            return m_context;
+        }
+        
     protected:
     public:
         virtual void on_update() {};
         virtual void on_register() { }
         virtual void on_deregister() { }
-
-    private:
+        
+    protected:
         String m_name;
+        Context& m_context;
     };
 }

@@ -120,11 +120,18 @@ namespace vengine
 
         Archetype* get_or_create_archetype(ComponentList const& component_types)
         {
-            auto maybe_archetypes = m_archetypes_by_components.get(component_types);
-            if (maybe_archetypes.has_value())
-                return maybe_archetypes.value();
+            auto* node = m_archetypes_by_components.get_node(component_types);
+            if (node != nullptr)
+            {
+                auto& maybe_archetypes = node->data;
+                if (maybe_archetypes.has_value())
+                    return maybe_archetypes.value();
+            }
 
             auto new_archetype = create<Archetype>(component_types).release_nonnull().release();
+#if DEBUG_ASSERTS == 1
+            print_archetype_hierarchy();
+#endif
             m_archetypes.append(new_archetype);
             m_archetypes_by_id.insert(new_archetype->id(), new_archetype);
             m_archetypes_by_components.insert(component_types, new_archetype);
@@ -148,8 +155,7 @@ namespace vengine
             m_archetypes_by_components.debug_print([](auto& p) {
                 for (auto& ptr : p)
                     __builtin_printf("%s,", ptr->name().data());
-                },
-                                                   [](auto& opt) { __builtin_printf("%p", opt.value_or(nullptr)); });
+                },[](auto& opt) { __builtin_printf("@%p", opt.value_or(nullptr)); });
         }
 
     private:

@@ -21,6 +21,9 @@
 #include "../SystemManager.h"
 #include "../Context.h"
 #include "../GameLoop.h"
+#include "../Input.h"
+#include "../vengine.h"
+#include "../modules/SDL.h"
 
 struct Position
 {
@@ -34,7 +37,12 @@ struct Velocity
 
 struct Rotation
 {
+    float x, y, z, w;
+};
 
+struct Scale
+{
+    float x, y, z;
 };
 
 using namespace vengine;
@@ -43,6 +51,10 @@ class UpdatePhysicsSystem final : public System
 {
 public:
     ~UpdatePhysicsSystem() override = default;
+    
+    explicit UpdatePhysicsSystem(Context& ctx) : System("UpdatePhysicsSystem", ctx)
+    {
+    }
     
     struct TaskThatIteratesOverEveryMatchingEntity : public ParallelTask<TaskThatIteratesOverEveryMatchingEntity, Position, Velocity>
     {
@@ -88,8 +100,11 @@ public:
         }
     };
     
-    void update()
+    void on_update() override
     {
+        if (m_context.input().get_key_down(KeyboardKey::Key0, KeyboardModifiers::None))
+            __builtin_printf("Key 0 pressed!\n");
+        
         TaskThatIteratesOverEveryMatchingEntity* task1 = new TaskThatIteratesOverEveryMatchingEntity(); task1->delta_time = 0.02f;
         Task* task2 = new TaskThatIteratesOverEveryMatchingEntityAndAlsoTakesAnIndex();
         TaskThatIteratesOverAnUserProvidedBuffer* task3 = new TaskThatIteratesOverAnUserProvidedBuffer(); task3->positions = nullptr; task3->velocities = nullptr;
@@ -97,15 +112,27 @@ public:
         task1->depends_on(task2);
         task2->depends_on(task3, task4);
         
-        task1->submit();
+        task1->submit(context());
     }
 };
 
 int main()
 {
-    Context ctx;
+#if DEBUG_ASSERTS == 1
+    __builtin_printf("Debug asserts enabled\n");
+#endif
+    
+    if (vengine::setup().is_error())
+    {
+        return -1;
+    }
+    
+    auto maybe_sdl_subsystems = create_SDL2_subsystem(SDLWindowFlags::Vulkan);
+    if (maybe_sdl_subsystems.has_error())
+        return -1;
+    Context ctx(std::move(maybe_sdl_subsystems.result()));
     __builtin_printf("Hello!\n");
-    UpdatePhysicsSystem k;
+    UpdatePhysicsSystem k(ctx);
     ctx.system_manager().register_system(&k);
     vengine::EntityID id = ctx.entity_manager().create(Position{}, Velocity{});
     vengine::EntityID id2 = ctx.entity_manager().create(Position{}, Rotation{}, Velocity{});
@@ -116,7 +143,9 @@ int main()
     ctx.entity_manager().destroy(id4);
     ctx.entity_manager().destroy(id3);
     ctx.entity_manager().destroy(id2);
-    
-    vengine::main_loop(ctx);
+    vengine::EntityID id5 = ctx.entity_manager().create(Position{}, Rotation{}, Scale{});
+    ctx.entity_manager().destroy(id5);
+    ctx.archetype_manager().print_archetype_hierarchy();
+    vengine::MainLoop::main_loop(ctx);
     return 0;
 }

@@ -25,9 +25,11 @@
 // Adding or removing components changes both fields, so entity ids are not persistent.
 // Use StableEntityID if you want a stable reference to an entity
 
-#define GET_INDEX_FROM_ENTITY_ID(x) ((x)&0xFFFFFFFFFFF)
-#define GET_ARCHETYPE_ID_FROM_ENTITY_ID(x) ((x) >> 44)
-#define MAKE_ENTITY_ID(archetype_id, index) (((archetype_id) << 44) | (index))
+
+#define ENTITY_ID_BIT_COUNT 40
+#define GET_INDEX_FROM_ENTITY_ID(x) ((x)&(-1ull >> ENTITY_ID_BIT_COUNT))
+#define GET_ARCHETYPE_ID_FROM_ENTITY_ID(x) ((x) >> ENTITY_ID_BIT_COUNT)
+#define MAKE_ENTITY_ID(archetype_id, index) (((archetype_id) << ENTITY_ID_BIT_COUNT) | (index))
 namespace vengine
 {
     using EntityID = IdentityType<u64>;

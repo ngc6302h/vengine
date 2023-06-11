@@ -26,9 +26,15 @@ namespace vengine
 {
     class SimulationUpdateStartSystem : public System
     {
+    public:
+        explicit SimulationUpdateStartSystem(Context& context) : System("SimulationUpdateStartSystem", context)
+        {}
+        
+    private:
         void on_update() override
         {
-            __builtin_printf("Simulation %lu\n", m_counter++);
+            if (m_counter++ % 50000 == 0)
+                __builtin_printf("Simulation %lu\n", m_counter);
         }
 
         u64 m_counter {0};
@@ -84,7 +90,7 @@ namespace vengine
 
     class SystemManager
     {
-        friend void main_loop(Context&);
+        friend class MainLoop;
         
         void run()
         {
@@ -101,7 +107,7 @@ namespace vengine
         SystemManager& operator=(SystemManager const&) = delete;
         explicit SystemManager(Context& context, detail::ContextBadge) :
             m_context(context),
-            m_first(create<SystemList>(nullptr, nullptr, create<SimulationUpdateStartSystem>().release_nonnull().release()).release_nonnull().release())
+            m_first(create<SystemList>(nullptr, nullptr, create<SimulationUpdateStartSystem>(context).release_nonnull().release()).release_nonnull().release())
         {
         }
 

@@ -1,13 +1,21 @@
+#pragma once
+
 #include "Context.h"
 #include "SystemManager.h"
+#include "Input.h"
 
 namespace vengine
 {
-    void main_loop(Context& ctx)
+    class MainLoop
     {
-        while (1)
+    public:
+        static void main_loop(Context& ctx)
         {
-            ctx.system_manager().run();
+            while (true)
+            {
+                ctx.input().update_inputs();
+                ctx.system_manager().run();
+            }
         }
-    }
+    };
 }

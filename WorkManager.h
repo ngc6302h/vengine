@@ -19,6 +19,7 @@
 #include <Function.h>
 #include <CircularBuffer.h>
 #include <Mutex.h>
+#include <Thread.h>
 
 namespace vengine
 {
@@ -36,19 +37,41 @@ namespace vengine
             ScopedLock lock(m_mutex);
             return std::move(m_buffer.dequeue().value());
         }
+        
+        size_t tasks_available()
+        {
+            ScopedLock lock(m_mutex);
+            return m_buffer.size();
+        }
+        
+        void wait()
+        {
+            m_mutex.lock();
+            m_mutex.unlock();
+        }
 
     private:
-        CircularBuffer<Function<void>> m_buffer { 512 };
-        HybridMutex m_mutex {};
+        CircularBuffer<Function<void>> m_buffer { 1024 };
+        neo::SpinlockMutex m_mutex {};
     };
 
     class WorkManager
     {
     public:
-        static WorkManager& instance()
+        WorkManager(Context& context, detail::ContextBadge) : m_context(context), m_threads()
         {
-            static WorkManager s_instance {};
-            return s_instance;
+            auto thread  = Thread::create([this](){
+                while(true)
+                {
+                    m_task_queue.wait();
+                    while (m_task_queue.tasks_available())
+                    {
+                        m_task_queue.dequeue()();
+                    }
+                }
+            });
+            
+            m_threads.append(std::move(thread.result()));
         }
 
         WorkQueue& task_queue()
@@ -59,9 +82,12 @@ namespace vengine
         u32 worker_count()
         {
             return 8;
+            //FIXME
         }
 
     private:
         WorkQueue m_task_queue;
+        Context& m_context;
+        Vector<RefPtr<Thread>> m_threads;
     };
 }

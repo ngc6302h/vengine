@@ -16,4 +16,10 @@
 
 #pragma once
 
-void hello();
+#include "ResultOrError.h"
+
+namespace vengine
+{
+    Result<void> setup() { return Result<void>(true); };
+}
+

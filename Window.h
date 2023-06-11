@@ -16,35 +16,12 @@
 
 #pragma once
 
-#include <Memory.h>
-#include "Badges.h"
-#include "Subsystem.h"
-
 namespace vengine
 {
-    class EntityManager;
-    class ArchetypeManager;
-    class SystemManager;
-    class Input;
-    class WorkManager;
-
-    class Context
+    class Window
     {
     public:
-        Context(SubsystemData&& subsystems);
-        EntityManager& entity_manager();
-        SystemManager& system_manager();
-        ArchetypeManager& archetype_manager();
-        WorkManager& work_manager();
-        Input& input();
-        Window& window();
-    
-    private:
-        OwnPtr<EntityManager> m_entity_manager;
-        OwnPtr<SystemManager> m_system_manager;
-        OwnPtr<ArchetypeManager> m_archetype_manager;
-        OwnPtr<WorkManager> m_work_manager;
-        OwnPtr<Input> m_input;
-        OwnPtr<Window> m_window;
+        virtual void close() = 0;
+        virtual ~Window() = default;
     };
 }

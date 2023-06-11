@@ -18,17 +18,20 @@
 #include "EntityManager.h"
 #include "Archetype.h"
 #include "SystemManager.h"
+#include "WorkManager.h"
 
 namespace vengine
 {
-
-    Context::Context() :
-        m_entity_manager(create<EntityManager>(*this, detail::ContextBadge {}).release_nonnull()),
-        m_system_manager(create<SystemManager>(*this, detail::ContextBadge {}).release_nonnull()),
-        m_archetype_manager(create<ArchetypeManager>(*this, detail::ContextBadge {}).release_nonnull())
+    Context::Context(SubsystemData&& subsystems) :  m_entity_manager(create<EntityManager>(*this, detail::ContextBadge {}).release_nonnull()),
+                                                            m_system_manager(create<SystemManager>(*this, detail::ContextBadge {}).release_nonnull()),
+                                                            m_archetype_manager(create<ArchetypeManager>(*this, detail::ContextBadge {}).release_nonnull()),
+                                                            m_work_manager(create<WorkManager>(*this, detail::ContextBadge {}).release_nonnull()),
+                                                            m_input(std::move(subsystems.input_subsystem)),
+                                                            m_window(std::move(subsystems.window_subsystem))
     {
+    
     }
-
+    
     EntityManager& Context::entity_manager()
     {
         return *m_entity_manager;
@@ -42,5 +45,20 @@ namespace vengine
     ArchetypeManager& Context::archetype_manager()
     {
         return *m_archetype_manager;
+    }
+    
+    Input& Context::input()
+    {
+        return *m_input;
+    }
+    
+    Window &Context::window()
+    {
+        return *m_window;
+    }
+    
+    WorkManager& Context::work_manager()
+    {
+        return *m_work_manager;
     }
 }
